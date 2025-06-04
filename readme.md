@@ -145,6 +145,7 @@ The provided backends on the other hand are not intended to be used directly by 
 | OpenGL 3 (GL3)    |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ❌     |    ❌    |    ❌    | Uncompressed TGA                                                  |
 | SDLrenderer       |       ✔️        |     ❌     |     ❌     |    ❌    |    ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| DirectX 11        |       ✔️        |     ✔️     |     ✔️     |    ✔️    |    ✔️    | Uncompressed TGA                                                  |
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
@@ -169,13 +170,14 @@ The provided backends on the other hand are not intended to be used directly by 
 
 ### Backends
 
-| Platform \ Renderer | OpenGL 2 (GL2) | OpenGL 3 (GL3) | Vulkan (VK) | SDLrenderer |
-|---------------------|:--------------:|:--------------:|:-----------:|:-----------:|
-| Win32               |       ✔️       |                |     ✔️      |             |
-| X11                 |       ✔️       |                |             |             |
-| SFML                |       ✔️       |                |             |             |
-| GLFW                |       ✔️       |       ✔️       |     ✔️      |             |
-| SDL¹                |       ✔️       |      ✔️²       |     ✔️      |     ✔️      |
+
+| Platform \ Renderer | OpenGL 2 (GL2) | OpenGL 3 (GL3) | Vulkan (VK) | SDLrenderer | DirectX11 |
+|---------------------|:---------:|:---------:|:---------:|:-----------:|:-----------:|
+| Win32               |     ✔️     |           |    ✔️     |             |      ✔️     |
+| X11                 |     ✔️     |           |          |             |             |
+| SFML                |     ✔️     |           |          |             |             |
+| GLFW                |     ✔️     |     ✔️    |     ✔️    |             |      ✔️     |
+| SDL¹                |     ✔️     |     ✔️²   |     ✔️    |      ✔️     |             |
 
 ¹ SDL backends extend their respective renderers to provide image support based on SDL_image.\
 ² Supports Emscripten compilation target.
