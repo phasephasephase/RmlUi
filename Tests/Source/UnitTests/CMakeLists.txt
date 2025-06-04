@@ -9,7 +9,9 @@ add_executable(${TARGET_NAME}
 	Debugger.cpp
 	Decorator.cpp
 	Element.cpp
+	ElementBackgroundBorder.cpp
 	ElementDocument.cpp
+	ElementHandle.cpp
 	ElementFormControlSelect.cpp
 	ElementImage.cpp
 	ElementStyle.cpp

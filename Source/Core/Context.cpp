@@ -45,6 +45,7 @@
 #include "ScrollController.h"
 #include "StreamFile.h"
 #include <algorithm>
+#include <clocale>
 #include <iterator>
 #include <limits>
 
@@ -53,6 +54,30 @@ namespace Rml {
 static constexpr float DOUBLE_CLICK_TIME = 0.5f;    // [s]
 static constexpr float DOUBLE_CLICK_MAX_DIST = 3.f; // [dp]
 static constexpr float UNIT_SCROLL_LENGTH = 80.f;   // [dp]
+
+static void DebugVerifyLocaleSetting()
+{
+#ifdef RMLUI_DEBUG
+	constexpr float expected_value = 1000.5f;
+	const Rml::String expected_string = "1000.5";
+	const Rml::String formatted_string = Rml::ToString(expected_value);
+	const float parsed_value = Rml::FromString<float>(expected_string);
+
+	const char* description = "RmlUi expects the global locale to be set to the default minimal \"C\" locale, please see `std::setlocale`.";
+	if (formatted_string != expected_string)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR,
+			"Incompatible locale setting detected while formatting %f. Formatted: \"%s\". Expected: \"%s\". Current locale: %s. %s", expected_value,
+			formatted_string.c_str(), expected_string.c_str(), std::setlocale(LC_ALL, nullptr), description);
+	}
+	if (parsed_value != expected_value)
+	{
+		Rml::Log::Message(Rml::Log::LT_ERROR,
+			"Incompatible locale setting detected while parsing \"%s\". Parsed: %f. Expected: %f. Current locale: %s. %s", expected_string.c_str(),
+			parsed_value, expected_value, std::setlocale(LC_ALL, nullptr), description);
+	}
+#endif
+}
 
 Context::Context(const String& name, RenderManager* render_manager, TextInputHandler* text_input_handler) :
 	name(name), render_manager(render_manager), text_input_handler(text_input_handler)
@@ -149,11 +174,11 @@ Vector2i Context::GetDimensions() const
 	return dimensions;
 }
 
-void Context::SetDensityIndependentPixelRatio(float _density_independent_pixel_ratio)
+void Context::SetDensityIndependentPixelRatio(float dp_ratio)
 {
-	if (density_independent_pixel_ratio != _density_independent_pixel_ratio)
+	if (density_independent_pixel_ratio != dp_ratio)
 	{
-		density_independent_pixel_ratio = _density_independent_pixel_ratio;
+		density_independent_pixel_ratio = dp_ratio;
 
 		for (int i = 0; i < root->GetNumChildren(true); ++i)
 		{
@@ -175,6 +200,7 @@ float Context::GetDensityIndependentPixelRatio() const
 bool Context::Update()
 {
 	RMLUI_ZoneScoped;
+	DebugVerifyLocaleSetting();
 
 	next_update_timeout = std::numeric_limits<double>::infinity();
 
@@ -216,7 +242,7 @@ bool Context::Render()
 {
 	RMLUI_ZoneScoped;
 
-	render_manager->PrepareRender();
+	render_manager->PrepareRender(dimensions);
 
 	root->Render();
 
@@ -274,6 +300,7 @@ ElementDocument* Context::LoadDocument(const String& document_path)
 
 ElementDocument* Context::LoadDocument(Stream* stream)
 {
+	DebugVerifyLocaleSetting();
 	PluginRegistry::NotifyDocumentOpen(this, stream->GetSourceURL().GetURL());
 
 	ElementPtr element = Factory::InstanceDocumentStream(this, stream, GetDocumentsBaseTag());
@@ -992,6 +1019,13 @@ bool Context::OnFocusChange(Element* new_focus, bool focus_visible)
 	// If the current focus is modal and the new focus is cannot receive focus from modal, deny the request.
 	if (old_document && old_document->IsModal() && (!new_document || !(new_document->IsModal() || new_document->IsFocusableFromModal())))
 		return false;
+
+	// If the document of the new focus has been closed, deny the request.
+	if (std::find_if(unloaded_documents.begin(), unloaded_documents.end(),
+			[&](const auto& unloaded_document) { return unloaded_document.get() == new_document; }) != unloaded_documents.end())
+	{
+		return false;
+	}
 
 	// Build the old chains
 	Element* element = old_focus;
