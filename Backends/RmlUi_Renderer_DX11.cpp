@@ -1190,13 +1190,12 @@ void RenderInterface_DX11::BeginFrame(ID3D11RenderTargetView* p_render_target_vi
     m_d3d_context->RSSetState(m_rasterizer_state_scissor_disabled); // Disable scissor
     m_stencil_ref_value = 0; // Reset stencil
     m_d3d_context->OMSetDepthStencilState(m_depth_stencil_state_disable, 0);
-    Clear();
     
     SetTransform(nullptr);
 
     m_render_layers.BeginFrame(m_viewport_width, m_viewport_height);
     Gfx::BindRenderTarget(m_d3d_context, m_render_layers.GetTopLayer());
-    float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float clearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     m_d3d_context->ClearRenderTargetView(m_render_layers.GetTopLayer().render_target_view, clearColor);
 
     UseProgram(ProgramId::None);
